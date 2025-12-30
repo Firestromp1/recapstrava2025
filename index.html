@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Année Sportive 2025 - Strava</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(180deg, #000 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .strava-logo {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .strava-logo svg {
+            width: 120px;
+            height: auto;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(30, 30, 40, 0.95) 0%, rgba(20, 20, 30, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(252, 76, 2, 0.1) 0%, transparent 70%);
+            animation: glow 8s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+            50% { transform: translate(20px, 20px); opacity: 0.6; }
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .flame-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .flame-badge {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
+        .flame-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid #fc4c02;
+            animation: spin 20s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .flame-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #fc4c02 0%, #ff6b35 100%);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 60px rgba(252, 76, 2, 0.6);
+        }
+
+        .flame-icon {
+            font-size: 48px;
+            margin-bottom: 5px;
+        }
+
+        .flame-number {
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .flame-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        .date-range {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .week-dots {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            margin-top: 25px;
+            max-width: 400px;
+        }
+
+        .week-dot {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: rgba(252, 76, 2, 0.15);
+            border: 2px solid rgba(252, 76, 2, 0.3);
+            transition: all 0.3s;
+        }
+
+        .week-dot.active {
+            background: #fc4c02;
+            border-color: #fc4c02;
+            box-shadow: 0 0 15px rgba(252, 76, 2, 0.8);
+        }
+
+        .sport-list {
+            margin-top: 20px;
+        }
+
+        .sport-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sport-item:last-child {
+            border-bottom: none;
+        }
+
+        .sport-rank {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fc4c02;
+            width: 50px;
+        }
+
+        .sport-icon {
+            font-size: 36px;
+            margin-right: 15px;
+        }
+
+        .sport-name {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sport-distance {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .stat-hero {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .stat-value {
+            font-size: 80px;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, #fff 0%, #fc4c02 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 18px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .month-chart {
+            margin-top: 30px;
+        }
+
+        .month-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .month-label {
+            width: 65px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+
+        .month-bar-bg {
+            flex: 1;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .month-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #fc4c02, #ffd700);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            font-weight: 700;
+            font-size: 15px;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .trophy-showcase {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .trophy-card {
+            background: linear-gradient(135deg, #fc4c02 0%, #ff6b35 100%);
+            border-radius: 20px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(252, 76, 2, 0.4);
+        }
+
+        .trophy-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .trophy-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .trophy-time {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            background: rgba(252, 76, 2, 0.1);
+            border: 1px solid rgba(252, 76, 2, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-box-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .stat-box-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fc4c02;
+        }
+
+        .stat-box-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin: 20px 0;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            background: rgba(252, 76, 2, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(252, 76, 2, 0.2);
+        }
+
+        .heatmap-cell.level-1 { background: rgba(252, 76, 2, 0.3); }
+        .heatmap-cell.level-2 { background: rgba(252, 76, 2, 0.5); }
+        .heatmap-cell.level-3 { background: rgba(252, 76, 2, 0.7); }
+        .heatmap-cell.level-4 { background: rgba(252, 76, 2, 0.9); }
+
+        .achievement-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .achievement-icon {
+            font-size: 48px;
+        }
+
+        .achievement-text {
+            flex: 1;
+        }
+
+        .achievement-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .achievement-desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .time-chart {
+            margin: 20px 0;
+        }
+
+        .time-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .time-label {
+            width: 100px;
+            font-size: 14px;
+            color: #999;
+        }
+
+        .time-bar-fill {
+            flex: 1;
+            height: 8px;
+            background: rgba(252, 76, 2, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .time-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #fc4c02, #ffd700);
+            border-radius: 4px;
+        }
+
+        .time-value {
+            width: 50px;
+            text-align: right;
+            font-weight: 700;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .footer-brand {
+            background: linear-gradient(90deg, #fc4c02 0%, #ffd700 50%, #fc4c02 100%);
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            border-radius: 12px;
+            margin-top: 25px;
+            color: #000;
+        }
+
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(252, 76, 2, 0.2);
+            border-top-color: #fc4c02;
+            border-radius: 50%;
+            animation: rotate 1s linear infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fc4c02, #ffd700);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #fc4c02 0%, #ff6b35 100%);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(252, 76, 2, 0.5);
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(252, 76, 2, 0.7);
+        }
+
+        .login-card {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .login-logo {
+            width: 100px;
+            height: 100px;
+            background: #fc4c02;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            margin: 0 auto 30px;
+        }
+
+        .info-box {
+            background: rgba(252, 76, 2, 0.1);
+            border: 1px solid rgba(252, 76, 2, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid rgba(252, 76, 2, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 16px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #fc4c02;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 30px 20px;
+            }
+
+            .flame-badge {
+                width: 160px;
+                height: 160px;
+            }
+
+            .flame-inner {
+                width: 130px;
+                height: 130px;
+            }
+
+            .flame-number {
+                font-size: 48px;
+            }
+
+            .stat-value {
+                font-size: 60px;
+            }
+
+            .trophy-showcase, .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="strava-logo">
+            <svg viewBox="0 0 397 77" style="fill: #fc4c02;">
+                <path d="M27.2 48.1L15.9 23.4 4.6 48.1H0L15.9 12.8l15.9 35.3h-4.6zm20.4 0l-8.2-18.3L31.2 12l-5.5 12.3 13.3 29.6h8.6V48h-.5zm18.2-15.7v3.4c0 7.5 5.2 13.2 12.5 13.2 7.4 0 12.6-5.7 12.6-13.2v-3.4c0-7.5-5.2-13.2-12.6-13.2-7.3 0-12.5 5.7-12.5 13.2zm20.5 0v3.4c0 5.2-3.2 9-8 9s-8-3.8-8-9v-3.4c0-5.2 3.2-9 8-9s8 3.8 8 9zm39.7 15.7h-4.5l-13-30.2v30.2h-4.3V12.8h6.7l12 28.3 12-28.3h6.7v35.3h-4.3V17.9l-11.3 30.2zm34.5 0l12.6-35.3h4.7l12.7 35.3h-4.6l-3-8.7h-14.8l-3 8.7h-4.6zm8.8-12.7h12.2L175.4 21l-6.1 14.4zm73.4-8.8h-4.5V12.8h4.5v13.8zm33.5 8.8l-12.8-21.1v21.1h-4.3V12.8h4.4l12.3 20.4V12.8h4.3v35.3h-4zM306 48.1h-4.5l-13-30.2v30.2h-4.3V12.8h6.7l12 28.3 12-28.3h6.7v35.3h-4.3V17.9L306 48.1zm34.5 0l12.6-35.3h4.7l12.7 35.3h-4.6l-3-8.7h-14.8l-3 8.7h-4.6zm8.8-12.7h12.2L355.4 21l-6.1 14.4z"/>
+            </svg>
+        </div>
+
+        <div id="app"></div>
+    </div>
+
+    <script>
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+        class RateLimiter {
+            constructor() {
+                this.limit15min = 100;
+                this.usage15min = 0;
+                this.limitDaily = 1000;
+                this.usageDaily = 0;
+                this.resetTime = null;
+            }
+
+            update(headers) {
+                const limit = headers.get('X-Ratelimit-Limit');
+                const usage = headers.get('X-Ratelimit-Usage');
+                
+                if (limit && usage) {
+                    const [l15, lDay] = limit.split(',').map(Number);
+                    const [u15, uDay] = usage.split(',').map(Number);
+                    
+                    this.limit15min = l15;
+                    this.usage15min = u15;
+                    this.limitDaily = lDay;
+                    this.usageDaily = uDay;
+                    
+                    const now = new Date();
+                    const min = now.getMinutes();
+                    const nextQuarter = Math.ceil((min + 1) / 15) * 15;
+                    this.resetTime = new Date(now);
+                    this.resetTime.setMinutes(nextQuarter, 0, 0);
+                }
+            }
+
+            canRequest(count = 1) {
+                return (this.usage15min + count) <= (this.limit15min - 10) && 
+                       (this.usageDaily + count) <= (this.limitDaily - 20);
+            }
+
+            timeToReset() {
+                if (!this.resetTime) return 0;
+                return Math.max(0, this.resetTime - new Date());
+            }
+        }
+
+        class StravaApp {
+            constructor() {
+                this.clientId = null;
+                this.clientSecret = null;
+                this.accessToken = null;
+                this.activities = [];
+                this.athlete = null;
+                this.stats = {};
+                this.rateLimiter = new RateLimiter();
+                this.app = document.getElementById('app');
+                
+                this.init();
+            }
+
+            async init() {
+                const params = new URLSearchParams(window.location.search);
+                const code = params.get('code');
+                const error = params.get('error');
+
+                if (error) {
+                    this.showError("Erreur d'authentification");
+                    return;
+                }
+
+                if (code) {
+                    const stored = localStorage.getItem('strava_config');
+                    if (stored) {
+                        const config = JSON.parse(stored);
+                        this.clientId = config.clientId;
+                        this.clientSecret = config.clientSecret;
+                        await this.exchangeToken(code);
+                    } else {
+                        this.showError("Configuration manquante");
+                    }
+                } else {
+                    this.showSetup();
+                }
+            }
+
+            showSetup() {
+                this.app.innerHTML = `
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="login-card">
+                                <div class="login-logo">S</div>
+                                <h2 style="margin-bottom: 15px; font-size: 28px;">Configuration Strava</h2>
+                                <p style="margin-bottom: 30px; color: #999; font-size: 16px;">Entre tes identifiants API</p>
+                                
+                                <div class="input-group">
+                                    <label>Client ID</label>
+                                    <input type="text" id="clientId" placeholder="Ex: 123456">
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label>Client Secret</label>
+                                    <input type="text" id="clientSecret" placeholder="Ex: abc123...">
+                                </div>
+
+                                <button onclick="app.saveConfig()" class="btn" style="margin-top: 20px;">
+                                    🚀 Se connecter
+                                </button>
+
+                                <div class="info-box" style="margin-top: 30px;">
+                                    <strong>🔑 Où trouver ces infos ?</strong>
+                                    <p>
+                                        1. Va sur <a href="https://www.strava.com/settings/api" target="_blank" style="color: #fc4c02;">strava.com/settings/api</a><br>
+                                        2. Crée une application<br>
+                                        3. Copie ton Client ID et Client Secret
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            saveConfig() {
+                const clientId = document.getElementById('clientId').value.trim();
+                const clientSecret = document.getElementById('clientSecret').value.trim();
+
+                if (!clientId || !clientSecret) {
+                    alert('Remplis tous les champs');
+                    return;
+                }
+
+                this.clientId = clientId;
+                this.clientSecret = clientSecret;
+
+                localStorage.setItem('strava_config', JSON.stringify({
+                    clientId,
+                    clientSecret
+                }));
+
+                const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&approval_prompt=force&scope=read,activity:read_all,profile:read_all`;
+                window.location.href = authUrl;
+            }
+
+            async exchangeToken(code) {
+                this.showLoading('Authentification...', 10);
+                
+                try {
+                    const res = await fetch('https://www.strava.com/oauth/token', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            client_id: this.clientId,
+                            client_secret: this.clientSecret,
+                            code: code,
+                            grant_type: 'authorization_code'
+                        })
+                    });
+
+                    if (!res.ok) throw new Error('Erreur authentification');
+
+                    const data = await res.json();
+                    this.accessToken = data.access_token;
+                    this.athlete = data.athlete;
+                    
+                    window.history.replaceState({}, '', window.location.pathname);
+                    await this.loadActivities();
+                    
+                } catch (err) {
+                    this.showError("Erreur d'authentification");
+                }
+            }
+
+            async apiCall(url) {
+                if (!this.rateLimiter.canRequest()) {
+                    const wait = this.rateLimiter.timeToReset();
+                    await new Promise(r => setTimeout(r, wait + 1000));
+                }
+
+                const res = await fetch(url, { 
+                    headers: { 'Authorization': `Bearer ${this.accessToken}` } 
+                });
+                
+                this.rateLimiter.update(res.headers);
+                return res;
+            }
+
+            async loadActivities() {
+                this.showLoading('Chargement des activités...', 20);
+
+                try {
+                    const after = Math.floor(new Date('2025-01-01').getTime() / 1000);
+                    const before = Math.floor(Date.now() / 1000);
+                    
+                    let page = 1;
+                    let all = [];
+                    
+                    while (true) {
+                        const url = `https://www.strava.com/api/v3/athlete/activities?after=${after}&before=${before}&page=${page}&per_page=200`;
+                        const res = await this.apiCall(url);
+
+                        if (!res.ok) {
+                            if (res.status === 429) {
+                                await new Promise(r => setTimeout(r, 60000));
+                                continue;
+                            }
+                            throw new Error('Erreur API');
+                        }
+
+                        const acts = await res.json();
+                        if (acts.length === 0) break;
+                        
+                        all = all.concat(acts);
+                        
+                        this.showLoading(`${all.length} activités trouvées`, Math.min(90, 20 + page * 10));
+                        
+                        if (acts.length < 200) break;
+                        page++;
+                        await new Promise(r => setTimeout(r, 500));
+                    }
+
+                    this.activities = all;
+                    
+                    if (all.length === 0) {
+                        this.showError('Aucune activité en 2025');
+                        return;
+                    }
+
+                    this.calculateStats();
+                    this.displayStats();
+                    
+                } catch (err) {
+                    this.showError(err.message);
+                }
+            }
+
+            calculateStats() {
+                const stats = {
+                    total: this.activities.length,
+                    distance: 0,
+                    time: 0,
+                    elevation: 0,
+                    kudos: 0,
+                    calories: 0,
+                    achievementCount: 0,
+                    prCount: 0,
+                    sports: {},
+                    months: {},
+                    days: new Set(),
+                    dayOfWeek: [0, 0, 0, 0, 0, 0, 0],
+                    timeOfDay: { morning: 0, afternoon: 0, evening: 0, night: 0 },
+                    longestActivity: null,
+                    fastestActivity: null,
+                    highestElevation: null,
+                    mostKudos: null,
+                    calories: 0,
+                    avgSpeed: 0,
+                    avgHeartRate: 0,
+                    heartRateActivities: 0,
+                    speedActivities: 0,
+                    commutes: 0,
+                    workouts: 0
+                };
+
+                const months = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCT', 'NOV', 'DÉC'];
+                months.forEach(m => stats.months[m] = 0);
+
+                this.activities.forEach(a => {
+                    stats.distance += a.distance / 1000;
+                    stats.time += a.moving_time / 3600;
+                    stats.elevation += a.total_elevation_gain || 0;
+                    stats.kudos += a.kudos_count || 0;
+                    stats.achievementCount += a.achievement_count || 0;
+                    stats.prCount += a.pr_count || 0;
+                    
+                    if (a.kilojoules) stats.calories += a.kilojoules * 0.239;
+                    if (a.average_speed && a.average_speed > 0) {
+                        stats.avgSpeed += a.average_speed;
+                        stats.speedActivities++;
+                    }
+                    if (a.average_heartrate && a.average_heartrate > 0) {
+                        stats.avgHeartRate += a.average_heartrate;
+                        stats.heartRateActivities++;
+                    }
+                    if (a.commute) stats.commutes++;
+                    if (a.workout_type) stats.workouts++;
+                    
+                    const date = new Date(a.start_date);
+                    const dayKey = date.toISOString().split('T')[0];
+                    stats.days.add(dayKey);
+                    
+                    const dow = date.getDay();
+                    stats.dayOfWeek[dow]++;
+                    
+                    const hour = date.getHours();
+                    if (hour >= 5 && hour < 12) stats.timeOfDay.morning++;
+                    else if (hour >= 12 && hour < 17) stats.timeOfDay.afternoon++;
+                    else if (hour >= 17 && hour < 22) stats.timeOfDay.evening++;
+                    else stats.timeOfDay.night++;
+                    
+                    const type = this.sportName(a.sport_type || a.type);
+                    if (!stats.sports[type]) {
+                        stats.sports[type] = {
+                            count: 0,
+                            distance: 0,
+                            time: 0,
+                            elevation: 0,
+                            icon: this.sportIcon(type)
+                        };
+                    }
+                    
+                    stats.sports[type].count++;
+                    stats.sports[type].distance += a.distance / 1000;
+                    stats.sports[type].time += a.moving_time / 3600;
+                    stats.sports[type].elevation += a.total_elevation_gain || 0;
+                    
+                    stats.months[months[date.getMonth()]]++;
+                    
+                    if (!stats.longestActivity || a.distance > stats.longestActivity.distance) {
+                        stats.longestActivity = a;
+                    }
+                    if (!stats.fastestActivity || (a.average_speed || 0) > (stats.fastestActivity.average_speed || 0)) {
+                        stats.fastestActivity = a;
+                    }
+                    if (!stats.highestElevation || (a.total_elevation_gain || 0) > (stats.highestElevation.total_elevation_gain || 0)) {
+                        stats.highestElevation = a;
+                    }
+                    if (!stats.mostKudos || (a.kudos_count || 0) > (stats.mostKudos.kudos_count || 0)) {
+                        stats.mostKudos = a;
+                    }
+                });
+
+                if (stats.speedActivities > 0) {
+                    stats.avgSpeed = (stats.avgSpeed / stats.speedActivities) * 3.6;
+                }
+                if (stats.heartRateActivities > 0) {
+                    stats.avgHeartRate = Math.round(stats.avgHeartRate / stats.heartRateActivities);
+                }
+
+                this.stats = stats;
+            }
+
+            sportName(type) {
+                const map = {
+                    'Run': 'Course', 'Ride': 'Vélo', 'Walk': 'Marche',
+                    'Hike': 'Randonnée', 'Swim': 'Natation', 'AlpineSki': 'Ski',
+                    'NordicSki': 'Ski de fond', 'Workout': 'Musculation',
+                    'Yoga': 'Yoga', 'WeightTraining': 'Musculation'
+                };
+                return map[type] || type;
+            }
+
+            sportIcon(type) {
+                const icons = {
+                    'Course': '🏃', 'Vélo': '🚴', 'Marche': '🚶',
+                    'Randonnée': '🥾', 'Natation': '🏊', 'Ski': '⛷️',
+                    'Ski de fond': '⛷️', 'Musculation': '💪', 'Yoga': '🧘'
+                };
+                return icons[type] || '⚡';
+            }
+
+            calculateStreak() {
+                if (this.activities.length === 0) return { weeks: 0 };
+
+                const dates = [...new Set(
+                    this.activities.map(a => new Date(a.start_date).setHours(0,0,0,0))
+                )].sort((a,b) => a - b);
+
+                let maxStreak = 0, currentStreak = 1;
+                let maxStart = 0, maxEnd = 0, currentStart = 0;
+
+                for (let i = 1; i < dates.length; i++) {
+                    const daysDiff = (dates[i] - dates[i-1]) / (1000*60*60*24);
+                    
+                    if (daysDiff <= 7) {
+                        currentStreak++;
+                    } else {
+                        if (currentStreak > maxStreak) {
+                            maxStreak = currentStreak;
+                            maxStart = currentStart;
+                            maxEnd = i - 1;
+                        }
+                        currentStreak = 1;
+                        currentStart = i;
+                    }
+                }
+
+                if (currentStreak > maxStreak) {
+                    maxStreak = currentStreak;
+                    maxStart = currentStart;
+                    maxEnd = dates.length - 1;
+                }
+
+                return { 
+                    weeks: Math.ceil(maxStreak / 7),
+                    start: new Date(dates[maxStart]),
+                    end: new Date(dates[maxEnd])
+                };
+            }
+
+            formatDate(date) {
+                return `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+            }
+
+            formatDuration(seconds) {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                return `${h}h${m.toString().padStart(2, '0')}`;
+            }
+
+            displayStats() {
+                const topSports = Object.entries(this.stats.sports)
+                    .sort((a,b) => b[1].distance - a[1].distance)
+                    .slice(0, 3);
+
+                const streak = this.calculateStreak();
+                const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
+                const maxDayCount = Math.max(...this.stats.dayOfWeek);
+                
+                const achievements = [];
+                if (this.stats.distance >= 1000) achievements.push({ icon: '🏆', title: 'Marathonien', desc: `Plus de 1000 km parcourus !` });
+                if (this.stats.days.size >= 100) achievements.push({ icon: '🔥', title: 'Régularité', desc: `${this.stats.days.size} jours actifs` });
+                if (this.stats.elevation >= 10000) achievements.push({ icon: '⛰️', title: 'Grimpeur', desc: `${Math.round(this.stats.elevation)}m de dénivelé !` });
+                if (this.stats.prCount >= 10) achievements.push({ icon: '⚡', title: 'Record breaker', desc: `${this.stats.prCount} records personnels` });
+
+                this.app.innerHTML = `
+                    ${this.athlete ? `
+                    <div class="card">
+                        <div class="card-content">
+                            <div style="text-align: center;">
+                                <h2 style="font-size: 32px; margin-bottom: 10px;">👋 ${this.athlete.firstname} ${this.athlete.lastname}</h2>
+                                <p style="color: #999; font-size: 16px; margin-bottom: 20px;">${this.athlete.city || ''} ${this.athlete.country || ''}</p>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">🏃</div>
+                                    <div class="stat-box-value">${this.stats.total}</div>
+                                    <div class="stat-box-label">Activités</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">👍</div>
+                                    <div class="stat-box-value">${this.stats.kudos}</div>
+                                    <div class="stat-box-label">Kudos reçus</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">🔥</div>
+                                    <div class="stat-box-value">${Math.round(this.stats.calories)}</div>
+                                    <div class="stat-box-label">Calories</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">🏅</div>
+                                    <div class="stat-box-value">${this.stats.achievementCount}</div>
+                                    <div class="stat-box-label">Trophées</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Plus longue série d'activités</div>
+                            <div class="flame-container">
+                                <div class="flame-badge">
+                                    <div class="flame-ring"></div>
+                                    <div class="flame-inner">
+                                        <div class="flame-icon">🔥</div>
+                                        <div class="flame-number">${streak.weeks}</div>
+                                        <div class="flame-label">SEMAINES</div>
+                                    </div>
+                                </div>
+                                ${streak.start ? `
+                                    <div class="date-range">${this.formatDate(streak.start)} - ${this.formatDate(streak.end)}</div>
+                                ` : ''}
+                                <div class="week-dots">
+                                    ${Array(40).fill(0).map((_, i) => `
+                                        <div class="week-dot ${i < streak.weeks ? 'active' : ''}"></div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+
+                    ${achievements.length > 0 ? `
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Tes accomplissements</div>
+                            ${achievements.map(a => `
+                                <div class="achievement-badge">
+                                    <div class="achievement-icon">${a.icon}</div>
+                                    <div class="achievement-text">
+                                        <div class="achievement-title">${a.title}</div>
+                                        <div class="achievement-desc">${a.desc}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Sports les plus pratiqués</div>
+                            <div class="sport-list">
+                                ${topSports.map(([name, data], i) => `
+                                    <div class="sport-item">
+                                        <div class="sport-rank">${i+1}</div>
+                                        <div class="sport-icon">${data.icon}</div>
+                                        <div class="sport-name">${name}</div>
+                                        <div class="sport-distance">${Math.round(data.distance)} km</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div style="margin-top: 30px; text-align: center; color: #999; font-size: 15px;">
+                                ${Math.round(this.stats.distance)} km au total !<br>
+                                Équivalent de ${(this.stats.distance / 42.195).toFixed(1)} marathons
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+
+                    ${this.stats.longestActivity ? `
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Records personnels</div>
+                            <div class="trophy-showcase">
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">🏆</div>
+                                    <div class="trophy-label">Plus longue distance</div>
+                                    <div class="trophy-time">${(this.stats.longestActivity.distance / 1000).toFixed(1)} km</div>
+                                </div>
+                                ${this.stats.fastestActivity && this.stats.fastestActivity.average_speed ? `
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">⚡</div>
+                                    <div class="trophy-label">Vitesse max</div>
+                                    <div class="trophy-time">${(this.stats.fastestActivity.average_speed * 3.6).toFixed(1)} km/h</div>
+                                </div>
+                                ` : ''}
+                                ${this.stats.highestElevation && this.stats.highestElevation.total_elevation_gain ? `
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">⛰️</div>
+                                    <div class="trophy-label">Plus gros D+</div>
+                                    <div class="trophy-time">${Math.round(this.stats.highestElevation.total_elevation_gain)} m</div>
+                                </div>
+                                ` : ''}
+                                ${this.stats.mostKudos && this.stats.mostKudos.kudos_count ? `
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">👍</div>
+                                    <div class="trophy-label">Plus de kudos</div>
+                                    <div class="trophy-time">${this.stats.mostKudos.kudos_count}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Ton jour préféré</div>
+                            <div class="time-chart">
+                                ${dayNames.map((day, i) => {
+                                    const count = this.stats.dayOfWeek[i];
+                                    const width = maxDayCount > 0 ? (count / maxDayCount) * 100 : 0;
+                                    return `
+                                        <div class="time-bar">
+                                            <div class="time-label">${day}</div>
+                                            <div class="time-bar-fill">
+                                                <div class="time-bar-inner" style="width: ${width}%"></div>
+                                            </div>
+                                            <div class="time-value">${count}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <div style="margin-top: 25px; text-align: center; color: #999;">
+                                Tu préfères t'entraîner le <strong style="color: #fc4c02;">${dayNames[this.stats.dayOfWeek.indexOf(Math.max(...this.stats.dayOfWeek))]}</strong>
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Ton moment de la journée</div>
+                            <div class="trophy-showcase">
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">🌅</div>
+                                    <div class="trophy-label">Matin (5h-12h)</div>
+                                    <div class="trophy-time">${this.stats.timeOfDay.morning}</div>
+                                </div>
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">☀️</div>
+                                    <div class="trophy-label">Après-midi</div>
+                                    <div class="trophy-time">${this.stats.timeOfDay.afternoon}</div>
+                                </div>
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">🌆</div>
+                                    <div class="trophy-label">Soirée (17h-22h)</div>
+                                    <div class="trophy-time">${this.stats.timeOfDay.evening}</div>
+                                </div>
+                                <div class="trophy-card">
+                                    <div class="trophy-icon">🌙</div>
+                                    <div class="trophy-label">Nuit (22h-5h)</div>
+                                    <div class="trophy-time">${this.stats.timeOfDay.night}</div>
+                                </div>
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Jours actifs</div>
+                            <div class="stat-hero">
+                                <div class="stat-value">${this.stats.days.size}</div>
+                                <div class="stat-label">jours</div>
+                            </div>
+                            <div class="month-chart">
+                                ${Object.entries(this.stats.months).map(([month, count]) => {
+                                    const max = Math.max(...Object.values(this.stats.months));
+                                    const width = max > 0 ? (count / max) * 100 : 0;
+                                    return `
+                                        <div class="month-row">
+                                            <div class="month-label">${month}</div>
+                                            <div class="month-bar-bg">
+                                                <div class="month-bar" style="width: ${width}%">${count}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+
+                    ${this.stats.avgSpeed > 0 || this.stats.avgHeartRate > 0 ? `
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Moyennes</div>
+                            <div class="stats-grid">
+                                ${this.stats.avgSpeed > 0 ? `
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">🚀</div>
+                                    <div class="stat-box-value">${this.stats.avgSpeed.toFixed(1)}</div>
+                                    <div class="stat-box-label">km/h moyen</div>
+                                </div>
+                                ` : ''}
+                                ${this.stats.avgHeartRate > 0 ? `
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">❤️</div>
+                                    <div class="stat-box-value">${this.stats.avgHeartRate}</div>
+                                    <div class="stat-box-label">BPM moyen</div>
+                                </div>
+                                ` : ''}
+                                ${this.stats.commutes > 0 ? `
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">🚴</div>
+                                    <div class="stat-box-value">${this.stats.commutes}</div>
+                                    <div class="stat-box-label">Trajets domicile</div>
+                                </div>
+                                ` : ''}
+                                ${this.stats.workouts > 0 ? `
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">💪</div>
+                                    <div class="stat-box-value">${this.stats.workouts}</div>
+                                    <div class="stat-box-label">Entraînements</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Récap de l'année</div>
+                            <div class="stat-hero">
+                                <div class="stat-label">Distance totale</div>
+                                <div class="stat-value">${Math.round(this.stats.distance)}<span style="font-size: 40px;"> km</span></div>
+                            </div>
+                            
+                            <div class="stat-hero">
+                                <div class="stat-label">Temps total</div>
+                                <div class="stat-value">${Math.round(this.stats.time)}<span style="font-size: 40px;"> h</span></div>
+                            </div>
+                            
+                            <div class="stat-hero">
+                                <div class="stat-label">Dénivelé positif</div>
+                                <div class="stat-value">${Math.round(this.stats.elevation)}<span style="font-size: 40px;"> m</span></div>
+                            </div>
+                            
+                            <div style="margin-top: 30px; text-align: center; color: #999;">
+                                ${this.stats.prCount > 0 ? `🏆 ${this.stats.prCount} records personnels battus<br>` : ''}
+                                ⚡ ${this.stats.achievementCount} trophées débloqués
+                            </div>
+                            
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            showLoading(message, progress = null) {
+                this.app.innerHTML = `
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="loading-screen">
+                                <div class="spinner"></div>
+                                <div class="loading-text">${message}</div>
+                                ${progress !== null ? `
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${progress}%"></div>
+                                    </div>
+                                    <div style="color: #999; margin-top: 10px;">${Math.round(progress)}%</div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            showError(message) {
+                this.app.innerHTML = `
+                    <div class="card">
+                        <div class="card-content" style="text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                            <h3 style="margin-bottom: 15px;">Erreur</h3>
+                            <p style="color: #999; margin-bottom: 30px;">${message}</p>
+                            <button onclick="location.reload()" class="btn">Réessayer</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        const app = new StravaApp();
+    </script>
+</body>
+</html>
