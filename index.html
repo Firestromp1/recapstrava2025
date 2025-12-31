@@ -28,11 +28,16 @@
         .strava-logo {
             text-align: center;
             padding: 30px 0;
+            display: none;
         }
 
         .strava-logo svg {
             width: 120px;
             height: auto;
+        }
+        
+        .strava-logo.show {
+            display: block;
         }
 
         .card {
@@ -540,11 +545,10 @@
                 const code = params.get('code');
 
                 if (code) {
-                    const stored = localStorage.getItem('strava_config');
+                    const stored = JSON.parse(sessionStorage.getItem('strava_config') || 'null');
                     if (stored) {
-                        const config = JSON.parse(stored);
-                        this.clientId = config.clientId;
-                        this.clientSecret = config.clientSecret;
+                        this.clientId = stored.clientId;
+                        this.clientSecret = stored.clientSecret;
                         await this.exchangeToken(code);
                     }
                 } else {
@@ -594,7 +598,7 @@
                     return;
                 }
 
-                localStorage.setItem('strava_config', JSON.stringify({ clientId, clientSecret }));
+                sessionStorage.setItem('strava_config', JSON.stringify({ clientId, clientSecret }));
                 this.clientId = clientId;
                 this.clientSecret = clientSecret;
 
@@ -821,6 +825,8 @@
             }
 
             displayStats() {
+                document.querySelector('.strava-logo').classList.add('show');
+                
                 const topSports = Object.entries(this.stats.sports)
                     .sort((a,b) => b[1].distance - a[1].distance)
                     .slice(0, 3);
@@ -910,22 +916,21 @@
                     <div class="card">
                         <div class="card-content">
                             <div class="card-title">Sports les plus pratiqués</div>
-                            <div style="position: relative; padding: 40px 0;">
+                            <div style="position: relative; padding: 50px 0; background: linear-gradient(180deg, rgba(13, 50, 56, 0.6) 0%, rgba(0, 128, 128, 0.3) 50%, rgba(13, 50, 56, 0.6) 100%); border-radius: 20px; margin: 20px 0;">
                                 ${topSports.map(([name, data], i) => {
                                     const max = topSports[0][1].distance;
                                     const percent = (data.distance / max) * 100;
-                                    const colors = [
-                                        'linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%)',
-                                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-                                    ];
+                                    const heights = [150, 120, 90];
                                     return `
-                                        <div style="position: relative; margin-bottom: ${i === 2 ? '0' : '30px'};">
-                                            <div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.5); width: 40px;">${i+1}</div>
-                                            <div style="margin-left: 60px; position: relative; height: 80px; border-radius: 20px; overflow: hidden; background: ${colors[i]}; width: ${percent}%; min-width: 180px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                                                <div style="display: flex; align-items: center; gap: 15px;">
-                                                    <div style="font-size: 36px;">${data.icon}</div>
-                                                    <div style="font-size: 32px; font-weight: 700; letter-spacing: -1px;">${Math.round(data.distance)} km</div>
+                                        <div style="position: relative; margin-bottom: ${i === 2 ? '0' : '40px'};">
+                                            <div style="position: absolute; left: 20px; top: 20px; font-size: 20px; font-weight: 700; color: rgba(0, 200, 200, 0.7); z-index: 2;">${i+1}</div>
+                                            <div style="position: relative; height: ${heights[i]}px; border-radius: 30px; overflow: hidden; background: linear-gradient(90deg, rgba(0, 200, 200, 0.4) 0%, rgba(0, 150, 150, 0.6) 50%, rgba(0, 100, 100, 0.8) 100%); width: ${percent}%; min-width: 250px; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 40px rgba(0, 200, 200, 0.3); border: 1px solid rgba(0, 200, 200, 0.3);">
+                                                <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.2;" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                                    <path d="M0,0 Q25,${50 + i * 5} 50,${30 + i * 3} T100,0 L100,100 L0,100 Z" fill="rgba(0, 255, 255, 0.2)"/>
+                                                </svg>
+                                                <div style="position: relative; z-index: 2; display: flex; align-items: center; gap: 20px;">
+                                                    <div style="font-size: 48px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));">${data.icon}</div>
+                                                    <div style="font-size: 52px; font-weight: 700; letter-spacing: -2px; color: rgba(0, 255, 255, 0.95); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);">${Math.round(data.distance)} <span style="font-size: 36px;">km</span></div>
                                                 </div>
                                             </div>
                                         </div>
