@@ -543,13 +543,16 @@
             async init() {
                 const params = new URLSearchParams(window.location.search);
                 const code = params.get('code');
+                const state = params.get('state');
 
-                if (code) {
-                    const stored = JSON.parse(sessionStorage.getItem('strava_config') || 'null');
-                    if (stored) {
-                        this.clientId = stored.clientId;
-                        this.clientSecret = stored.clientSecret;
+                if (code && state) {
+                    try {
+                        const config = JSON.parse(atob(state));
+                        this.clientId = config.clientId;
+                        this.clientSecret = config.clientSecret;
                         await this.exchangeToken(code);
+                    } catch(e) {
+                        this.showError("Erreur de configuration");
                     }
                 } else {
                     this.showSetup();
@@ -598,11 +601,11 @@
                     return;
                 }
 
-                sessionStorage.setItem('strava_config', JSON.stringify({ clientId, clientSecret }));
                 this.clientId = clientId;
                 this.clientSecret = clientSecret;
 
-                const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&approval_prompt=force&scope=read,activity:read_all`;
+                const state = btoa(JSON.stringify({ clientId, clientSecret }));
+                const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&approval_prompt=force&scope=read,activity:read_all&state=${state}`;
                 window.location.href = authUrl;
             }
 
