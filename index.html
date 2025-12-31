@@ -671,7 +671,9 @@
                     avgSpeed: 0, avgHeartRate: 0,
                     speedActivities: 0, heartRateActivities: 0,
                     commutes: 0, workouts: 0,
-                    topSupporters: []
+                    topSupporters: [],
+                    weather: { rain: 0, cold: 0, hot: 0, wind: 0 },
+                    cities: {}
                 };
 
                 const months = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCT', 'NOV', 'DÉC'];
@@ -685,11 +687,33 @@
                     stats.achievementCount += a.achievement_count || 0;
                     stats.prCount += a.pr_count || 0;
                     
-                    // Calcul des calories : soit depuis kilojoules, soit estimation
+                    // Conditions météo
+                    const temp = a.average_temp;
+                    if (temp !== undefined && temp !== null) {
+                        if (temp < 5) stats.weather.cold++;
+                        if (temp > 30) stats.weather.hot++;
+                    }
+                    const text = `${a.name || ''} ${a.description || ''}`.toLowerCase();
+                    if (text.includes('pluie') || text.includes('rain')) stats.weather.rain++;
+                    if (text.includes('vent') || text.includes('wind')) stats.weather.wind++;
+                    
+                    // Villes visitées
+                    if (a.start_latlng && a.start_latlng.length === 2) {
+                        const cityKey = `${a.start_latlng[0].toFixed(2)},${a.start_latlng[1].toFixed(2)}`;
+                        if (!stats.cities[cityKey]) {
+                            stats.cities[cityKey] = {
+                                name: a.location_city || a.timezone?.split('/')[1] || 'Ville inconnue',
+                                count: 0,
+                                latlng: a.start_latlng
+                            };
+                        }
+                        stats.cities[cityKey].count++;
+                    }
+                    
+                    // Calories
                     if (a.kilojoules && a.kilojoules > 0) {
                         stats.calories += a.kilojoules * 0.239;
                     } else {
-                        // Estimation basique : ~50 cal/km pour la course, ~30 cal/km pour le vélo
                         const type = a.sport_type || a.type;
                         if (type === 'Run' || type === 'Walk' || type === 'Hike') {
                             stats.calories += (a.distance / 1000) * 50;
@@ -699,6 +723,7 @@
                             stats.calories += (a.distance / 1000) * 40;
                         }
                     }
+                    
                     if (a.average_speed > 0) {
                         stats.avgSpeed += a.average_speed;
                         stats.speedActivities++;
@@ -756,32 +781,26 @@
                     stats.avgHeartRate = Math.round(stats.avgHeartRate / stats.heartRateActivities);
                 }
 
-                // Analyser les supporters les plus actifs
                 await this.analyzeTopSupporters(stats);
-
                 this.stats = stats;
             }
 
             async analyzeTopSupporters(stats) {
                 const supporterCounts = {};
                 
-                // Compter les kudos par personne sur toutes les activités
                 this.activities.forEach(a => {
                     if (a.kudos_count > 0 && a.id) {
-                        // Stocker l'ID de l'activité pour récupérer les kudos
                         if (!supporterCounts._activities) supporterCounts._activities = [];
                         supporterCounts._activities.push(a.id);
                     }
                 });
                 
-                // Prendre un échantillon d'activités (max 50 pour avoir plus de données)
                 const sampleActivities = (supporterCounts._activities || [])
                     .sort(() => Math.random() - 0.5)
                     .slice(0, 50);
                 
                 this.showLoading(`Analyse des supporters... 0/${sampleActivities.length}`, 90);
                 
-                // Récupérer les kudos de cet échantillon
                 for (let i = 0; i < sampleActivities.length; i++) {
                     const actId = sampleActivities[i];
                     try {
@@ -815,7 +834,6 @@
                 
                 delete supporterCounts._activities;
                 
-                // Top 3 supporters
                 stats.topSupporters = Object.values(supporterCounts)
                     .sort((a, b) => b.count - a.count)
                     .slice(0, 3);
@@ -937,6 +955,82 @@
                                     <div class="stat-box-label">Trophées</div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">☁️ Météo - Tes conditions extrêmes</div>
+                            <div style="text-align: center; margin: 20px 0; color: #999;">
+                                Tempête ? Parfait, ça fera plus de kudos 🧡
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">🌧️</div>
+                                    <div class="stat-box-value">${this.stats.weather.rain}</div>
+                                    <div class="stat-box-label">sorties sous la pluie</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">❄️</div>
+                                    <div class="stat-box-value">${this.stats.weather.cold}</div>
+                                    <div class="stat-box-label">sorties dans le froid</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">☀️</div>
+                                    <div class="stat-box-value">${this.stats.weather.hot}</div>
+                                    <div class="stat-box-label">sorties sous la chaleur</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-icon">💨</div>
+                                    <div class="stat-box-value">${this.stats.weather.wind}</div>
+                                    <div class="stat-box-label">sorties face au vent</div>
+                                </div>
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
+                        </div>
+                    </div>
+
+                    ${Object.keys(this.stats.cities).length > 0 ? `
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">🧭 Exploration - Tes terrains de jeu</div>
+                            <div style="text-align: center; margin: 20px 0;">
+                                <div style="font-size: 18px; color: #999;">Tu as couru dans <strong style="color: #fc4c02;">${Object.keys(this.stats.cities).length}</strong> villes cette année !</div>
+                                <div style="font-size: 14px; color: #999; margin-top: 10px;">J'espère que tu as partagé tes bonnes adresses à tes potes 😊</div>
+                            </div>
+                            <div style="margin-top: 30px;">
+                                ${Object.entries(this.stats.cities)
+                                    .sort((a, b) => b[1].count - a[1].count)
+                                    .slice(0, 5)
+                                    .map(([key, city], i) => {
+                                        const maxCount = Object.values(this.stats.cities).reduce((max, c) => Math.max(max, c.count), 0);
+                                        const percentage = (city.count / maxCount) * 100;
+                                        return `
+                                            <div style="margin-bottom: 20px;">
+                                                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                                    <div style="width: 40px; font-size: 20px; font-weight: 700; color: ${i === 0 ? '#ffd700' : '#999'};">${i === 0 ? '#1' : ''}</div>
+                                                    <div style="flex: 1;">
+                                                        <div style="font-size: 16px; font-weight: 700; color: white; margin-bottom: 4px;">📍 ${city.name}</div>
+                                                        <div style="font-size: 14px; color: #999;">${city.count} sorties</div>
+                                                    </div>
+                                                </div>
+                                                <div style="height: 8px; background: rgba(252, 76, 2, 0.2); border-radius: 4px; overflow: hidden; margin-left: 40px;">
+                                                    <div style="height: 100%; width: ${percentage}%; background: linear-gradient(90deg, #fc4c02, #ffd700); border-radius: 4px; transition: width 1s ease;"></div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                            </div>
+                            ${Object.entries(this.stats.cities).sort((a, b) => b[1].count - a[1].count)[0] ? `
+                            <div style="margin-top: 30px; text-align: center; padding: 20px; background: rgba(252, 76, 2, 0.1); border-radius: 16px; border: 1px solid rgba(252, 76, 2, 0.3);">
+                                <div style="font-size: 14px; color: #999; margin-bottom: 5px;">Ta ville préférée</div>
+                                <div style="font-size: 24px; font-weight: 700; color: #fc4c02;">
+                                    ${Math.round((Object.entries(this.stats.cities).sort((a, b) => b[1].count - a[1].count)[0][1].count / this.stats.total) * 100)}% de tes sorties ont commencé à ${Object.entries(this.stats.cities).sort((a, b) => b[1].count - a[1].count)[0][1].name} ❤️
+                                </div>
+                            </div>
+                            ` : ''}
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
                     ` : ''}
