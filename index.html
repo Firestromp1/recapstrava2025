@@ -360,13 +360,13 @@
 
         .footer-brand {
             background: linear-gradient(90deg, #fc4c02 0%, #ffd700 50%, #fc4c02 100%);
-            padding: 12px;
+            padding: 8px;
             text-align: center;
             font-weight: 700;
-            font-size: 12px;
-            letter-spacing: 1.5px;
-            border-radius: 12px;
-            margin-top: 25px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            border-radius: 8px;
+            margin: 40px 0 20px 0;
             color: #000;
         }
 
@@ -685,11 +685,9 @@
                     stats.achievementCount += a.achievement_count || 0;
                     stats.prCount += a.pr_count || 0;
                     
-                    // Calcul des calories : soit depuis kilojoules, soit estimation
                     if (a.kilojoules && a.kilojoules > 0) {
                         stats.calories += a.kilojoules * 0.239;
                     } else {
-                        // Estimation basique : ~50 cal/km pour la course, ~30 cal/km pour le vélo
                         const type = a.sport_type || a.type;
                         if (type === 'Run' || type === 'Walk' || type === 'Hike') {
                             stats.calories += (a.distance / 1000) * 50;
@@ -756,7 +754,6 @@
                     stats.avgHeartRate = Math.round(stats.avgHeartRate / stats.heartRateActivities);
                 }
 
-                // Analyser les supporters les plus actifs
                 await this.analyzeTopSupporters(stats);
 
                 this.stats = stats;
@@ -765,23 +762,14 @@
             async analyzeTopSupporters(stats) {
                 const supporterCounts = {};
                 
-                // Compter les kudos par personne sur toutes les activités
-                this.activities.forEach(a => {
-                    if (a.kudos_count > 0 && a.id) {
-                        // Stocker l'ID de l'activité pour récupérer les kudos
-                        if (!supporterCounts._activities) supporterCounts._activities = [];
-                        supporterCounts._activities.push(a.id);
-                    }
-                });
-                
-                // Prendre un échantillon d'activités (max 50 pour avoir plus de données)
-                const sampleActivities = (supporterCounts._activities || [])
+                const sampleActivities = this.activities
+                    .filter(a => a.kudos_count > 0)
                     .sort(() => Math.random() - 0.5)
-                    .slice(0, 50);
+                    .slice(0, 50)
+                    .map(a => a.id);
                 
                 this.showLoading(`Analyse des supporters... 0/${sampleActivities.length}`, 90);
                 
-                // Récupérer les kudos de cet échantillon
                 for (let i = 0; i < sampleActivities.length; i++) {
                     const actId = sampleActivities[i];
                     try {
@@ -813,9 +801,6 @@
                     }
                 }
                 
-                delete supporterCounts._activities;
-                
-                // Top 3 supporters
                 stats.topSupporters = Object.values(supporterCounts)
                     .sort((a, b) => b.count - a.count)
                     .slice(0, 3);
@@ -968,7 +953,6 @@
                             <div style="text-align: center; color: #999; margin-top: 20px;">
                                 Basé sur un échantillon de 50 activités
                             </div>
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
                     ` : ''}
@@ -990,7 +974,6 @@
                                     ${Array(40).fill(0).map((_, i) => `<div class="week-dot ${i < streak.weeks ? 'active' : ''}"></div>`).join('')}
                                 </div>
                             </div>
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
 
@@ -1007,7 +990,6 @@
                                     </div>
                                 </div>
                             `).join('')}
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
                     ` : ''}
@@ -1040,7 +1022,6 @@
                                 ${Math.round(this.stats.distance)} km au total<br>
                                 Équivalent de ${(this.stats.distance / 42.195).toFixed(1)} marathons
                             </div>
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
 
@@ -1076,7 +1057,6 @@
                                 </div>
                                 ` : ''}
                             </div>
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
                     ` : ''}
@@ -1102,7 +1082,6 @@
                             <div style="margin-top: 25px; text-align: center; color: #999;">
                                 Tu préfères le <strong style="color: #fc4c02;">${dayNames[this.stats.dayOfWeek.indexOf(Math.max(...this.stats.dayOfWeek))]}</strong>
                             </div>
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
 
@@ -1131,7 +1110,6 @@
                                     <div class="trophy-time">${this.stats.timeOfDay.night}</div>
                                 </div>
                             </div>
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
 
@@ -1156,7 +1134,6 @@
                                     `;
                                 }).join('')}
                             </div>
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
 
@@ -1182,10 +1159,10 @@
                                 ${this.stats.prCount > 0 ? `🏆 ${this.stats.prCount} records personnels<br>` : ''}
                                 ⚡ ${this.stats.achievementCount} trophées débloqués
                             </div>
-                            
-                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
+
+                    <div class="footer-brand">STRAVA • L'ANNÉE SPORTIVE 2025 • STRAVA</div>
                 `;
             }
 
