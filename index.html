@@ -774,13 +774,16 @@
                     }
                 });
                 
-                // Prendre un échantillon d'activités (max 20 pour limiter les requêtes)
+                // Prendre un échantillon d'activités (max 50 pour avoir plus de données)
                 const sampleActivities = (supporterCounts._activities || [])
                     .sort(() => Math.random() - 0.5)
-                    .slice(0, 20);
+                    .slice(0, 50);
+                
+                this.showLoading(`Analyse des supporters... 0/${sampleActivities.length}`, 90);
                 
                 // Récupérer les kudos de cet échantillon
-                for (const actId of sampleActivities) {
+                for (let i = 0; i < sampleActivities.length; i++) {
+                    const actId = sampleActivities[i];
                     try {
                         const res = await fetch(`https://www.strava.com/api/v3/activities/${actId}/kudos`, {
                             headers: { 'Authorization': `Bearer ${this.accessToken}` }
@@ -788,18 +791,23 @@
                         const kudoers = await res.json();
                         
                         kudoers.forEach(person => {
-                            const key = `${person.firstname} ${person.lastname}`;
+                            const key = person.id || `${person.firstname}_${person.lastname}`;
                             if (!supporterCounts[key]) {
                                 supporterCounts[key] = {
                                     count: 0,
                                     firstname: person.firstname,
-                                    lastname: person.lastname
+                                    lastname: person.lastname,
+                                    profile: person.profile || person.profile_medium || ''
                                 };
                             }
                             supporterCounts[key].count++;
                         });
                         
-                        await new Promise(r => setTimeout(r, 100));
+                        if ((i + 1) % 5 === 0) {
+                            this.showLoading(`Analyse des supporters... ${i + 1}/${sampleActivities.length}`, 90 + Math.floor((i / sampleActivities.length) * 8));
+                        }
+                        
+                        await new Promise(r => setTimeout(r, 80));
                     } catch (e) {
                         console.error('Erreur kudos:', e);
                     }
