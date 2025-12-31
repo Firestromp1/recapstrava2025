@@ -28,16 +28,11 @@
         .strava-logo {
             text-align: center;
             padding: 30px 0;
-            display: none;
         }
 
         .strava-logo svg {
             width: 120px;
             height: auto;
-        }
-        
-        .strava-logo.show {
-            display: block;
         }
 
         .card {
@@ -517,11 +512,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="strava-logo">
-            <svg viewBox="0 0 397 77" style="fill: #fc4c02;">
-                <path d="M27.2 48.1L15.9 23.4 4.6 48.1H0L15.9 12.8l15.9 35.3h-4.6zm20.4 0l-8.2-18.3L31.2 12l-5.5 12.3 13.3 29.6h8.6V48h-.5zm18.2-15.7v3.4c0 7.5 5.2 13.2 12.5 13.2 7.4 0 12.6-5.7 12.6-13.2v-3.4c0-7.5-5.2-13.2-12.6-13.2-7.3 0-12.5 5.7-12.5 13.2zm20.5 0v3.4c0 5.2-3.2 9-8 9s-8-3.8-8-9v-3.4c0-5.2 3.2-9 8-9s8 3.8 8 9zm39.7 15.7h-4.5l-13-30.2v30.2h-4.3V12.8h6.7l12 28.3 12-28.3h6.7v35.3h-4.3V17.9l-11.3 30.2zm34.5 0l12.6-35.3h4.7l12.7 35.3h-4.6l-3-8.7h-14.8l-3 8.7h-4.6zm8.8-12.7h12.2L175.4 21l-6.1 14.4zm73.4-8.8h-4.5V12.8h4.5v13.8zm33.5 8.8l-12.8-21.1v21.1h-4.3V12.8h4.4l12.3 20.4V12.8h4.3v35.3h-4zM306 48.1h-4.5l-13-30.2v30.2h-4.3V12.8h6.7l12 28.3 12-28.3h6.7v35.3h-4.3V17.9L306 48.1zm34.5 0l12.6-35.3h4.7l12.7 35.3h-4.6l-3-8.7h-14.8l-3 8.7h-4.6zm8.8-12.7h12.2L355.4 21l-6.1 14.4z"/>
-            </svg>
-        </div>
         <div id="app"></div>
     </div>
 
@@ -694,7 +684,20 @@
                     stats.achievementCount += a.achievement_count || 0;
                     stats.prCount += a.pr_count || 0;
                     
-                    if (a.kilojoules) stats.calories += a.kilojoules * 0.239;
+                    // Calcul des calories : soit depuis kilojoules, soit estimation
+                    if (a.kilojoules && a.kilojoules > 0) {
+                        stats.calories += a.kilojoules * 0.239;
+                    } else {
+                        // Estimation basique : ~50 cal/km pour la course, ~30 cal/km pour le vélo
+                        const type = a.sport_type || a.type;
+                        if (type === 'Run' || type === 'Walk' || type === 'Hike') {
+                            stats.calories += (a.distance / 1000) * 50;
+                        } else if (type === 'Ride') {
+                            stats.calories += (a.distance / 1000) * 30;
+                        } else {
+                            stats.calories += (a.distance / 1000) * 40;
+                        }
+                    }
                     if (a.average_speed > 0) {
                         stats.avgSpeed += a.average_speed;
                         stats.speedActivities++;
@@ -828,8 +831,6 @@
             }
 
             displayStats() {
-                document.querySelector('.strava-logo').classList.add('show');
-                
                 const topSports = Object.entries(this.stats.sports)
                     .sort((a,b) => b[1].distance - a[1].distance)
                     .slice(0, 3);
