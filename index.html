@@ -13,10 +13,31 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(180deg, #000 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 20%, #16213e 50%, #0f2027 80%, #000 100%);
             color: white;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(252, 76, 2, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 215, 0, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 107, 53, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
         }
 
         .container {
@@ -687,25 +708,64 @@
                     stats.achievementCount += a.achievement_count || 0;
                     stats.prCount += a.pr_count || 0;
                     
-                    // Conditions météo
+                    // Conditions météo (basées sur température réelle)
                     const temp = a.average_temp;
                     if (temp !== undefined && temp !== null) {
                         if (temp < 5) stats.weather.cold++;
                         if (temp > 30) stats.weather.hot++;
                     }
-                    const text = `${a.name || ''} ${a.description || ''}`.toLowerCase();
-                    if (text.includes('pluie') || text.includes('rain')) stats.weather.rain++;
-                    if (text.includes('vent') || text.includes('wind')) stats.weather.wind++;
                     
-                    // Villes visitées
+                    // Détection pluie/vent via analyse intelligente
+                    const text = `${a.name || ''} ${a.description || ''}`.toLowerCase();
+                    const rainKeywords = ['pluie', 'rain', 'wet', 'mouillé', 'humide', 'drizzle', 'shower'];
+                    const windKeywords = ['vent', 'wind', 'windy', 'venteux', 'breezy', 'gale'];
+                    
+                    if (rainKeywords.some(kw => text.includes(kw))) stats.weather.rain++;
+                    if (windKeywords.some(kw => text.includes(kw))) stats.weather.wind++;
+                    
+                    // Si weather_type existe dans l'API (certaines versions)
+                    if (a.weather && a.weather.includes('rain')) stats.weather.rain++;
+                    if (a.weather && a.weather.includes('wind')) stats.weather.wind++;
+                    
+                    // Villes visitées - identification plus précise
+                    let cityName = 'Ville inconnue';
+                    
+                    // Priorité 1: nom de la ville directement
+                    if (a.location_city && a.location_city.trim()) {
+                        cityName = a.location_city.trim();
+                    } 
+                    // Priorité 2: extraction depuis timezone
+                    else if (a.timezone) {
+                        const parts = a.timezone.split('/');
+                        if (parts.length > 1) {
+                            cityName = parts[parts.length - 1].replace(/_/g, ' ');
+                        }
+                    }
+                    // Priorité 3: extraction depuis le nom de l'activité
+                    else if (a.name) {
+                        const matches = a.name.match(/à\s+([A-ZÀ-Ÿ][a-zà-ÿ]+(?:\s+[A-ZÀ-Ÿ][a-zà-ÿ]+)*)/);
+                        if (matches && matches[1]) {
+                            cityName = matches[1];
+                        }
+                    }
+                    
                     if (a.start_latlng && a.start_latlng.length === 2) {
-                        const cityKey = `${a.start_latlng[0].toFixed(2)},${a.start_latlng[1].toFixed(2)}`;
+                        // Clé basée sur coordonnées arrondies (zone de ~1km)
+                        const latKey = Math.round(a.start_latlng[0] * 100) / 100;
+                        const lngKey = Math.round(a.start_latlng[1] * 100) / 100;
+                        const cityKey = `${latKey},${lngKey}`;
+                        
                         if (!stats.cities[cityKey]) {
                             stats.cities[cityKey] = {
-                                name: a.location_city || a.timezone?.split('/')[1] || 'Ville inconnue',
+                                name: cityName,
                                 count: 0,
-                                latlng: a.start_latlng
+                                latlng: [latKey, lngKey]
                             };
+                        } else {
+                            // Mise à jour du nom si on a un meilleur nom
+                            if (cityName !== 'Ville inconnue' && stats.cities[cityKey].name === 'Ville inconnue') {
+                                stats.cities[cityKey].name = cityName;
+                            }
                         }
                         stats.cities[cityKey].count++;
                     }
