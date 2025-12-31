@@ -652,14 +652,14 @@
                         return;
                     }
 
-                    this.calculateStats();
+                    await this.calculateStats();
                     this.displayStats();
                 } catch (err) {
                     this.showError(err.message);
                 }
             }
 
-            calculateStats() {
+            async calculateStats() {
                 const stats = {
                     total: this.activities.length,
                     distance: 0, time: 0, elevation: 0, kudos: 0, calories: 0,
@@ -670,7 +670,8 @@
                     highestElevation: null, mostKudos: null,
                     avgSpeed: 0, avgHeartRate: 0,
                     speedActivities: 0, heartRateActivities: 0,
-                    commutes: 0, workouts: 0
+                    commutes: 0, workouts: 0,
+                    topSupporters: []
                 };
 
                 const months = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEPT', 'OCT', 'NOV', 'DÉC'];
@@ -755,7 +756,61 @@
                     stats.avgHeartRate = Math.round(stats.avgHeartRate / stats.heartRateActivities);
                 }
 
+                // Analyser les supporters les plus actifs
+                await this.analyzeTopSupporters(stats);
+
                 this.stats = stats;
+            }
+
+            async analyzeTopSupporters(stats) {
+                const supporterCounts = {};
+                
+                // Compter les kudos par personne sur toutes les activités
+                this.activities.forEach(a => {
+                    if (a.kudos_count > 0 && a.id) {
+                        // Stocker l'ID de l'activité pour récupérer les kudos
+                        if (!supporterCounts._activities) supporterCounts._activities = [];
+                        supporterCounts._activities.push(a.id);
+                    }
+                });
+                
+                // Prendre un échantillon d'activités (max 20 pour limiter les requêtes)
+                const sampleActivities = (supporterCounts._activities || [])
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 20);
+                
+                // Récupérer les kudos de cet échantillon
+                for (const actId of sampleActivities) {
+                    try {
+                        const res = await fetch(`https://www.strava.com/api/v3/activities/${actId}/kudos`, {
+                            headers: { 'Authorization': `Bearer ${this.accessToken}` }
+                        });
+                        const kudoers = await res.json();
+                        
+                        kudoers.forEach(person => {
+                            const key = `${person.firstname} ${person.lastname}`;
+                            if (!supporterCounts[key]) {
+                                supporterCounts[key] = {
+                                    count: 0,
+                                    firstname: person.firstname,
+                                    lastname: person.lastname
+                                };
+                            }
+                            supporterCounts[key].count++;
+                        });
+                        
+                        await new Promise(r => setTimeout(r, 100));
+                    } catch (e) {
+                        console.error('Erreur kudos:', e);
+                    }
+                }
+                
+                delete supporterCounts._activities;
+                
+                // Top 3 supporters
+                stats.topSupporters = Object.values(supporterCounts)
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 3);
             }
 
             sportName(type) {
@@ -874,6 +929,38 @@
                                     <div class="stat-box-label">Trophées</div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${this.stats.topSupporters && this.stats.topSupporters.length > 0 ? `
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="card-title">Tes plus grands supporters</div>
+                            <div style="margin: 30px 0;">
+                                ${this.stats.topSupporters.map((supporter, i) => {
+                                    const medals = ['🥇', '🥈', '🥉'];
+                                    const colors = [
+                                        'linear-gradient(135deg, #ffd700 0%, #ff6b35 100%)',
+                                        'linear-gradient(135deg, #c0c0c0 0%, #808080 100%)',
+                                        'linear-gradient(135deg, #cd7f32 0%, #8b4513 100%)'
+                                    ];
+                                    return `
+                                        <div style="background: ${colors[i]}; border-radius: 20px; padding: 25px; margin-bottom: ${i === 2 ? '0' : '20px'}; display: flex; align-items: center; gap: 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+                                            <div style="font-size: 48px;">${medals[i]}</div>
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">${supporter.firstname} ${supporter.lastname}</div>
+                                                <div style="font-size: 16px; opacity: 0.9;">👍 ${supporter.count} kudos</div>
+                                            </div>
+                                            <div style="font-size: 32px; font-weight: 700; color: rgba(255, 255, 255, 0.3);">#${i+1}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <div style="text-align: center; color: #999; margin-top: 20px;">
+                                Basé sur un échantillon de 20 activités
+                            </div>
+                            <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
                     ` : ''}
