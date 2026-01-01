@@ -859,7 +859,7 @@
                     .sort(() => Math.random() - 0.5)
                     .slice(0, 50);
                 
-                this.showLoading(`Analyse des supporters... 0/${sampleActivities.length}`, 90);
+                this.showLoading(`📊 Collecte des infos, ça peut prendre 2-3 minutes...<br><small style="font-size: 14px; color: #999;">Analyse des kudos : 0/${sampleActivities.length}</small>`, 90);
                 
                 for (let i = 0; i < sampleActivities.length; i++) {
                     const actId = sampleActivities[i];
@@ -883,7 +883,7 @@
                         });
                         
                         if ((i + 1) % 5 === 0) {
-                            this.showLoading(`Analyse des supporters... ${i + 1}/${sampleActivities.length}`, 90 + Math.floor((i / sampleActivities.length) * 8));
+                            this.showLoading(`📊 Collecte des infos, ça peut prendre 2-3 minutes...<br><small style="font-size: 14px; color: #999;">Analyse des kudos : ${i + 1}/${sampleActivities.length}</small>`, 90 + Math.floor((i / sampleActivities.length) * 8));
                         }
                         
                         await new Promise(r => setTimeout(r, 80));
@@ -1025,6 +1025,7 @@
                             <div style="text-align: center; margin: 20px 0; color: #999;">
                                 Tempête ? Parfait, ça fera plus de kudos 🧡
                             </div>
+                            ${(this.stats.weather.rain + this.stats.weather.cold + this.stats.weather.hot + this.stats.weather.wind) > 0 ? `
                             <div class="stats-grid">
                                 <div class="stat-box">
                                     <div class="stat-box-icon">🌧️</div>
@@ -1047,6 +1048,15 @@
                                     <div class="stat-box-label">sorties face au vent</div>
                                 </div>
                             </div>
+                            ` : `
+                            <div style="text-align: center; padding: 40px 20px; background: rgba(252, 76, 2, 0.05); border-radius: 16px; border: 1px solid rgba(252, 76, 2, 0.2);">
+                                <div style="font-size: 48px; margin-bottom: 15px;">🌤️</div>
+                                <div style="font-size: 18px; color: #999;">
+                                    Aucune donnée météo détectée.<br>
+                                    <span style="font-size: 14px;">Les conditions météo sont analysées depuis les titres et descriptions de tes activités.</span>
+                                </div>
+                            </div>
+                            `}
                             <div class="footer-brand">STRAVA L'ANNÉE SPORTIVE 2025 STRAVA</div>
                         </div>
                     </div>
